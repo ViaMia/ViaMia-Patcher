@@ -13,9 +13,12 @@ const fs = require('fs');
 const path = require('path');
 const asar = require('asar');
 
-const default_url = "http://127.0.0.1:1337";
-
-// TODO: ADD SOME ASCII ART
+let default_url = "https://viamia.github.io";
+const myArgs = process.argv.slice(2);
+if(myArgs[0] !== undefined){
+    // TODO: check url validity
+    default_url = myArgs[0];
+}
 
 async function Main(){
     console.log("ViaMia - v0.02");
@@ -90,11 +93,10 @@ async function Main(){
         if(!fs.existsSync(x)){ console.log(`Target file ${x} could not be found. Perhaps VIA was updated.`); process.exit(0); }
     });
 
-    let {replaceWith} = await inquirer.prompt([
-        {"type": "input", "name": "replaceWith", "message": "Replace VIA url with", "default": default_url}
-    ]);
-
-    // TODO: CHECK URL VALIDITY
+    // let {replaceWith} = await inquirer.prompt([
+    //     {"type": "input", "name": "replaceWith", "message": "Replace VIA url with", "default": default_url}
+    // ]);
+    let replaceWith = default_url;
 
     for(const target of targets){
         await fileContentReplace(target, replaceWith);
