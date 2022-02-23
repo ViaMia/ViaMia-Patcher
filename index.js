@@ -3,7 +3,6 @@
 /**
  * ViaMia - Use your own keyboards with VIA
  * 
- * Thomas Konings - 2022
  * If VIA breaks that's your problem. If you ran this program, don't go complain to the VIA team.
  * I take no responsibility for any issues caused by this tool. Use it at your own risk.
  */
@@ -19,10 +18,9 @@ const default_url = "http://127.0.0.1:1337";
 // TODO: ADD SOME ASCII ART
 
 async function Main(){
-    console.log("ViaMia - v0.01");
-    console.log("ViaMia allows you to define a custom keyboard JSON collection for VIA to use during startup.");
-    console.log("It does so by adjusting a single url in your VIA install. Updates to VIA may break this tool.");
-    console.log("If you encounter any issues with VIA after running this tool, do not contact the VIA team. Reinstall VIA.");
+    console.log("ViaMia - v0.02");
+    console.log("If you encounter any issues with VIA after running this tool, do not contact the VIA team. Contact ViaMia.");
+    console.log(" ");
     console.log("Important: close VIA before continuing.");
     console.log(" ");
 
@@ -99,7 +97,7 @@ async function Main(){
     // TODO: CHECK URL VALIDITY
 
     for(const target of targets){
-        await fileContentReplace(target, "https://www.caniusevia.com", replaceWith);
+        await fileContentReplace(target, replaceWith);
     };
     console.log("All target files modified.");
 
@@ -116,10 +114,12 @@ async function Main(){
 
 }
 
-async function fileContentReplace(file, replace, replaceWith){
+async function fileContentReplace(file, replaceWith){
+    let replaceRegex = /("keyboards\.v2\.json",")(.+?)(")/g;
+
     console.log("Reading file: "+file);
     let contents = (await fs.promises.readFile(file)).toString();
-    contents = contents.replace(replace, replaceWith);
+    contents = contents.replace(replaceRegex, "$1"+replaceWith+"$3");
     await fs.promises.writeFile(file, contents);
     console.log("Modded file: "+file);
 }
