@@ -21,7 +21,7 @@ if(myArgs[0] !== undefined){
 }
 
 async function Main(){
-    console.log("ViaMia - v0.02");
+    console.log("ViaMia - v1.0.2");
     console.log("If you encounter any issues with VIA after running this tool, do not contact the VIA team. Contact ViaMia.");
     console.log(" ");
     console.log("Important: close VIA before continuing.");
