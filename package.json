@@ -1,6 +1,6 @@
 {
   "name": "viamia",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Patcher for VIA. Use your own keyboards api and never import a JSON file again.",
   "main": "index.js",
   "bin": "index.js",
