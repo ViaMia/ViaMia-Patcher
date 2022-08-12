@@ -12,6 +12,7 @@ const os = require('os');
 const fs = require('fs');
 const path = require('path');
 const asar = require('asar');
+const plist = require('simple-plist');
 
 let default_url = "https://viamia.github.io";
 const myArgs = process.argv.slice(2);
@@ -42,6 +43,8 @@ async function Main(){
     let possiblePath;
     if(platform == "win32"){
         possiblePath = path.join(homedir,"AppData","Local","Programs","via");
+    } else if(platform == "darwin"){
+        possiblePath = path.join("/", "Applications", "VIA.app")
     }
 
     let viaPath;
@@ -68,12 +71,29 @@ async function Main(){
 
     // We now have a viaPath that's always defined
     console.log("VIA install found in: "+viaPath);
-    let resources = path.join(viaPath, "resources");
+    let resources;
+    if(platform == "win32"){
+        resources = path.join(viaPath, "resources");
+    } else if(platform == "darwin"){
+        resources = path.join(viaPath, "Contents", "Resources")
+    }
     let app_asar = path.join(resources, "app.asar");
 
     // Check if app.asar exists
     let exists = fs.existsSync(app_asar);
-    if(!exists){ console.log("app.asar resources could not be found. Perhaps VIA was updated."); process.exit(0); }
+    if(!exists){
+        let error_msg = "app.asar resources could not be found."
+        if(platform=="darwin") {
+            data = plist.readFileSync(path.join(viaPath,"Contents","info.plist"))
+            console.warn("data is ", data)
+            if(data.CFBundleShortVersionString.charAt(0)>1){
+                error_msg += " "+"this script only works with VIA version 1";
+            }
+        } else {
+            error_msg += " "+"Perhaps VIA was updated."
+        }
+        console.log(error_msg); process.exit(0);
+    }
 
     // Backup app.asar
     fs.copyFileSync(app_asar, path.join(resources, "app.asar.bac"));
@@ -87,10 +107,23 @@ async function Main(){
 
     // Locate target file
     let targets = [];
+    error_msg = "";
     targets.push(path.join(unpacked_dir, "app", "main.prod.js"));
     targets.push(path.join(unpacked_dir, "app", "dist", "renderer.prod.js"));
     targets.forEach(x => {
-        if(!fs.existsSync(x)){ console.log(`Target file ${x} could not be found. Perhaps VIA was updated.`); process.exit(0); }
+        if(!fs.existsSync(x)){ 
+            error_msg = "Target file "+x+" could not be found."
+            if(platform=="darwin") {
+                data = plist.readFileSync(path.join(viaPath,"Contents","info.plist"))
+                if(data.CFBundleShortVersionString.charAt(0) != 1){
+                    error_msg += "\n"+"Found VIA v"+data.CFBundleShortVersionString+" "+"This script only works with VIA v1";
+                }
+            } else {
+                error_msg += " "+"Perhaps VIA was updated."
+            }
+            console.log(error_msg);
+    
+            process.exit(0); }
     });
 
     // let {replaceWith} = await inquirer.prompt([
@@ -110,7 +143,7 @@ async function Main(){
     console.log("ASAR repacked. Cleaning up.");
 
     // Clean up unpacked files
-    fs.rmdirSync(unpacked_dir, {recursive: true});
+    fs.rmSync(unpacked_dir, {recursive: true});
 
     console.log("Mod done, ViaMia out.");
 
